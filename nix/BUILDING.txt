@@ -39,7 +39,7 @@ For incremental development, nix develop supplies the same dependencies:
     -DZMK_CONFIG="$PWD/config"
   cmake --build build/local --parallel
 
-lib.mkFirmware.<system> is a Nix function accepting name, board, optional
-shield, config, src, extraModules and cmakeFlags. Supported build hosts:
+lib.mkFirmware takes a host system string and returns a function accepting
+name, board, optional shield, config, src, extraModules and cmakeFlags. Build hosts:
 x86_64-linux and aarch64-linux. Update pinned dependencies together with
 app/west.yml and the imported Zephyr manifest when upgrading ZMK.
