@@ -1,0 +1,99 @@
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/mouse.h>
+#include <dt-bindings/zmk/outputs.h>
+
+/ {
+  behaviors {
+
+    hm: homerow_mods {
+        compatible = "zmk,behavior-hold-tap";
+        label = "HOMEROW_MODS";
+        #binding-cells = <2>;
+        tapping-term-ms = <200>;
+        quick-tap-ms = <175>;
+        flavor = "tap-preferred";
+        bindings = <&kp>, <&kp>;
+    };
+
+    morph_LPAR: morph_LPAR {
+        compatible = "zmk,behavior-mod-morph";
+        #binding-cells = <0>;
+        bindings = <&kp LPAR>, <&kp LBKT>;
+        mods = <(MOD_LSFT|MOD_RSFT)>;
+    };
+
+    morph_RPAR: morph_RPAR {
+        compatible = "zmk,behavior-mod-morph";
+        #binding-cells = <0>;
+        bindings = <&kp RPAR>, <&kp RBKT>;
+        mods = <(MOD_LSFT|MOD_RSFT)>;
+    };
+
+    morph_LBRC: morph_LBRC {
+        compatible = "zmk,behavior-mod-morph";
+        #binding-cells = <0>;
+        bindings = <&kp LBRC>, <&kp LT>;
+        mods = <(MOD_LSFT|MOD_RSFT)>;
+    };
+
+    morph_RBRC: morph_RBRC {
+        compatible = "zmk,behavior-mod-morph";
+        #binding-cells = <0>;
+        bindings = <&kp RBRC>, <&kp GT>;
+        mods = <(MOD_LSFT|MOD_RSFT)>;
+    };
+  };
+
+  keymap {
+      compatible = "zmk,keymap";
+
+
+      default_layer {
+          bindings = <
+&bootloader
+&kp        GRAVE  &kp        N1  &kp       N2  &kp N3  &kp    N4  &kp N5  &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp N6  &kp    N7  &kp    N8  &kp   N9  &kp   N0  &kp      SYSREQ
+&kp     CAPSLOCK  &kp         Q  &kp        W  &kp  E  &kp     R  &kp  T  &morph_LBRC         &morph_RBRC        &kp  Y  &kp     U  &kp     I  &kp    O  &kp    P  &kp        BSLH
+&kp          TAB  &kp         A  &kp        S  &kp  D  &kp     F  &kp  G                                         &kp  H  &kp     J  &kp     K  &kp    L  &kp SEMI  &kp         SQT
+&kp        LSHFT  &kp         Z  &kp        X  &kp  C  &kp     V  &kp  B  &morph_LPAR         &morph_RPAR        &kp  N  &kp     M  &kp COMMA  &kp  DOT  &kp FSLH  &kp RIGHT_SHIFT
+&kp LEFT_CONTROL  &kp LEFT_META  &kp LEFT_ALT  &tog 1  &kp EQUAL                                                         &kp MINUS  &tog    2  &kp HOME  &kp  END  &kp         INS
+
+              &kp LEFT_META  &kp   ESC                                                        &kp   PAGE_UP  &kp RIGHT_ALT
+&kp CAPSLOCK  &kp BACKSPACE  &mo     1                                                        &kp PAGE_DOWN  &kp     ENTER  &kp SPACE
+                             &kp SPACE                                                        &kp       DEL
+					>;
+      };
+
+      layer_fnNum {
+          bindings = <
+&bootloader
+&kp ESCAPE  &kp F1  &kp   F2  &kp   F3  &kp    F4  &kp      F5  &trans    &trans  &kp    F6  &kp F7  &kp     F8  &kp     F9  &kp      F10 &kp       F11
+&trans      &trans  &trans    &kp   UP  &trans     &trans       &trans    &trans  &kp  STAR  &kp N7  &kp     N8  &kp     N9  &kp ASTERISK &kp       F12
+&trans      &trans  &kp LEFT  &kp DOWN  &kp RIGHT  &trans                         &kp MINUS  &kp N4  &kp     N5  &kp     N6  &kp     PLUS &kp    PERIOD
+&trans      &trans  &trans    &trans    &trans     &bootloader  &trans    &trans  &kp SLASH  &kp N1  &kp     N2  &kp     N3  &kp    SLASH &kp   PAGE_UP
+&trans      &trans  &trans    &trans    &trans                                               &kp N0  &kp PERIOD  &kp PERIOD  &kp    EQUAL &kp PAGE_DOWN
+
+        &trans  &trans                                                    &trans  &trans
+&trans  &trans  &trans                                                    &trans  &kp SPACE  &kp ENTER
+                &trans                                                    &trans
+          >;
+      };
+
+      layer_mod {
+          bindings = <
+&bootloader
+&none  &bt BT_SEL 0  &bt     BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3 &bt BT_SEL 4  &none    &none  &none  &none         &none   &none  &none  &none
+&none  &none         &out     OUT_TOG  &none         &none        &none         &none    &none  &none  &kp C_VOL_UP  &none   &none  &none  &none
+&none  &kp   C_PREV  &kp C_PLAY_PAUSE  &kp   C_NEXT  &none        &none                         &none  &kp C_VOL_DN  &none   &none  &none  &none
+&none  &none         &none             &bt   BT_CLR  &none        &none         &none    &none  &none  &kp   C_MUTE  &none   &none  &none  &none
+&none  &none         &none             &to        0  &none                                             &none         &trans  &none  &none  &none
+
+       &none  &bootloader                                                                &bootloader  &none
+&none  &none        &none                                                                &none        &none  &none
+                    &none                                                                &none
+          >;
+      };
+
+  };
+};
