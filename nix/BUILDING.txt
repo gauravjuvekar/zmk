@@ -1,7 +1,4 @@
-From this repository on the mylayout branch:
-
-  nix build .#lp -o result-lp   # 202207 Green (low profile)
-  nix build .#wl -o result-wl   # 202205 Green
+Run ./build.sh to build both halves of LP (202207 Green) and WL (202205 Green).
 
 UF2 files: result-{lp,wl}/{central-left,peripheral-right}/*.uf2
 Flash matching halves together; clear old bonds when migrating from SliceMK.
