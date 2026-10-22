@@ -2,9 +2,12 @@
   description = "Local upstream ZMK firmware builds (Nordic ARM boards)";
 
   inputs = {
+    # This stable package set provides the tested ARM GCC 13.3 toolchain.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     # Match app/west.yml and its imported Zephyr west.yml. No west update or
     # network access is needed during compilation; flake.lock pins every source.
+    # Update these pins together when upgrading ZMK. Nix handles initial source
+    # and tool downloads; cached builds also work with nix build --offline.
     zephyr = {
       url = "github:zmkfirmware/zephyr/v4.1.0+zmk-fixes";
       flake = false;
@@ -80,6 +83,7 @@
           ];
           # Zephyr derives module names from directory basenames when module.yml
           # omits a name. Preserve west's names instead of Nix store basenames.
+          # These modules cover Nordic ARM boards; other MCU families need their HALs.
           moduleSources = {
             inherit (inputs)
               cmsis
@@ -96,6 +100,9 @@
             pkgs.lib.mapAttrsToList (name: path: { inherit name path; }) moduleSources
           );
           modules = map (name: "${moduleTree}/${name}") (builtins.attrNames moduleSources);
+          # lib.mkFirmware takes a host system string, then these build arguments.
+          # src defaults to the checked-out app; config selects a ZMK config directory.
+          # extraModules and cmakeFlags allow other boards and build options.
           mkFirmware =
             {
               name,
@@ -110,6 +117,7 @@
               pname = "zmk-${name}";
               version = "${self.shortRev or self.dirtyShortRev or "local"}";
               inherit src;
+              # Compile firmware locally rather than substituting prebuilt images.
               preferLocalBuild = true;
               allowSubstitutes = false;
               nativeBuildInputs = tools;
@@ -153,30 +161,48 @@
                 runHook postInstall
               '';
             };
-          keyboard =
-            if builtins.pathExists ./nix/keyboard.nix then
-              import ./nix/keyboard.nix
-            else
-              {
-                board = "nice_nano//zmk";
-                shield = "corne_left";
-                name = "upstream-corne-left";
-              };
-          firmware = mkFirmware (
-            (builtins.removeAttrs keyboard [ "peripheralBoard" ])
-            // pkgs.lib.optionalAttrs (builtins.pathExists ./config) { config = ./config; }
-          );
-          peripheral = mkFirmware {
-            name = "${keyboard.name}-peripheral-right";
-            board = keyboard.peripheralBoard;
-            shield = "slicemk_ergodox_right";
-            config = ./config;
+          # The original mylayout-lp and mylayout-wl config branches share a keymap.
+          # config/ preserves it with quick_tap_ms migrated to quick-tap-ms.
+          # Board definitions preserve the vendor flash partitions and oscillator
+          # choices (202205 RC, 202207 crystal); both revisions use nRF52833.
+          keyboards = {
+            lp = "202207";
+            wl = "202205";
           };
-          packages = {
-            default = firmware;
-            central-left = firmware;
-          }
-          // pkgs.lib.optionalAttrs (keyboard ? peripheralBoard) { peripheral-right = peripheral; };
+          roles = {
+            central-left = {
+              side = "left";
+              shield = "slicemk_ergodox_leftcentral";
+            };
+            peripheral-right = {
+              side = "right";
+              shield = "slicemk_ergodox_right";
+            };
+          };
+          firmware = pkgs.lib.mapAttrs (
+            keyboard: revision:
+            pkgs.lib.mapAttrs (
+              role: target:
+              mkFirmware {
+                name = "mylayout-${keyboard}-${role}";
+                board = "slicemk_ergodox_${revision}_green_${target.side}";
+                inherit (target) shield;
+                config = ./config;
+              }
+            ) roles
+          ) keyboards;
+          # Each keyboard target contains role directories so .config and DTS
+          # outputs remain distinguishable. Individual half targets are derived
+          # from the same matrix, e.g. lp-central-left and wl-peripheral-right.
+          packages = pkgs.lib.concatMapAttrs (
+            keyboard: halves:
+            {
+              ${keyboard} = pkgs.linkFarm "zmk-mylayout-${keyboard}" (
+                pkgs.lib.mapAttrsToList (name: path: { inherit name path; }) halves
+              );
+            }
+            // pkgs.lib.mapAttrs' (role: package: pkgs.lib.nameValuePair "${keyboard}-${role}" package) halves
+          ) firmware;
         in
         {
           inherit
@@ -189,7 +215,22 @@
         };
     in
     {
-      packages = forAllSystems (system: (forSystem system).packages);
+      # The default builds both LP halves. Flash matching upstream halves together:
+      # vendor peripherals use a different split implementation. Clear old bonds
+      # when migrating. Compile and UF2 validation do not replace hardware testing.
+      packages = forAllSystems (
+        system:
+        let
+          packages = (forSystem system).packages;
+        in
+        packages // { default = packages.lp; }
+      );
+      # For incremental builds, enter nix develop and run:
+      # cmake -S app -B build/local -G Ninja \
+      #   -DBOARD=slicemk_ergodox_202207_green_left -DBOARD_ROOT="$PWD/app" \
+      #   -DSHIELD=slicemk_ergodox_leftcentral -DZMK_CONFIG="$PWD/config"
+      # cmake --build build/local --parallel
+      # Add new config files to Git so Nix includes them in the source snapshot.
       devShells = forAllSystems (
         system:
         let
