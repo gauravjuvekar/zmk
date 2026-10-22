@@ -13,7 +13,7 @@
         matrix {
             kscan = <&kscan2>;
             row-offset = <1>;
-            column-offset = <7>;
+            col-offset = <7>;
         };
     };
 

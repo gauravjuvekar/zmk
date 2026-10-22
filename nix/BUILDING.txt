@@ -5,8 +5,8 @@ The flake compiles the checked-out app sources locally, using Nix-pinned
 Zephyr 4.1, Nordic modules, Python dependencies and ARM GCC. Dependency
 downloads happen through Nix; compilation needs no network, containers,
 west update, pip installs, or GitHub Actions. Once dependencies are cached,
-use nix build --offline. Firmware derivations cannot use substitutes or
-remote builders. Other MCU families need their HAL modules added explicitly.
+use nix build --offline. Firmware derivations disable substitutes and prefer
+local builders. Other MCU families need their HAL modules added explicitly.
 
 From this repository:
 
