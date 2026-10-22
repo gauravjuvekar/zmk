@@ -1,0 +1,5 @@
+config SHIELD_SLICEMK_ERGODOX_LEFTCENTRAL
+    def_bool $(shields_list_contains,slicemk_ergodox_leftcentral)
+
+config SHIELD_SLICEMK_ERGODOX_RIGHT
+    def_bool $(shields_list_contains,slicemk_ergodox_right)

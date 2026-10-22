@@ -1,0 +1,17 @@
+boards:
+  - name: slicemk_ergodox_202205_green_left
+    vendor: slicemk
+    socs:
+      - name: nrf52833
+  - name: slicemk_ergodox_202205_green_right
+    vendor: slicemk
+    socs:
+      - name: nrf52833
+  - name: slicemk_ergodox_202207_green_left
+    vendor: slicemk
+    socs:
+      - name: nrf52833
+  - name: slicemk_ergodox_202207_green_right
+    vendor: slicemk
+    socs:
+      - name: nrf52833

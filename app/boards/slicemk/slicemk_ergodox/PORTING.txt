@@ -1,0 +1,13 @@
+Pin maps and flash partitions are from slicemk/zmk, commit
+71f8242b8ab2e9f9c86ebbb221ba15876413f295 (MIT license):
+https://github.com/slicemk/zmk/tree/71f8242b8ab2e9f9c86ebbb221ba15876413f295/app/boards
+
+Migrated to Zephyr 4.1 board metadata and upstream ZMK BLE splits. Both
+revisions use nRF52833, not nRF52840. Preserve the vendor bootloader layout:
+application 0x1000..0x6cfff, NVS 0x6d000..0x73fff, bootloader from 0x74000.
+202205 uses the internal low-frequency RC oscillator; 202207 uses a crystal.
+
+The shield preserves the vendor's 77 positions (the first is the boot button),
+including the right matrix's seven-column offset. Flash matching upstream
+central and peripheral builds together; the vendor peripheral firmware uses
+a different split implementation. Clear old bonds when migrating.
