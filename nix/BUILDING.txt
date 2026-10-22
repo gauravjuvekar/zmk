@@ -1,0 +1,45 @@
+Local ZMK builds
+===============
+
+The flake compiles the checked-out app sources locally, using Nix-pinned
+Zephyr 4.1, Nordic modules, Python dependencies and ARM GCC. Dependency
+downloads happen through Nix; compilation needs no network, containers,
+west update, pip installs, or GitHub Actions. Once dependencies are cached,
+use nix build --offline. Firmware derivations cannot use substitutes or
+remote builders. Other MCU families need their HAL modules added explicitly.
+
+From this repository:
+
+  git switch mylayout-lp                 # 202207 Green (low profile)
+  # or: git switch mylayout-wl           # 202205 Green
+  nix build .#central-left --out-link result-left
+  nix build .#peripheral-right --out-link result-right
+
+The output directories contain named UF2, HEX, BIN and ELF files plus the
+resolved zephyr.config and zephyr.dts. The default package is central-left.
+The nix-local-build branch demonstrates upstream's stock Corne left on a
+nice!nano, without a personal configuration.
+
+Both layout branches preserve their source keymap from the matching branch
+in ../slicemk-ergodox-wireless, with quick_tap_ms updated to quick-tap-ms.
+Their hardware targets are in nix/keyboard.nix. Edit config/ for keymap and
+Kconfig changes; add new files to Git so Nix includes them in the source.
+
+Flash both halves with these matching builds. The vendor peripheral images
+use a different split implementation. Clear old Bluetooth bonds on both
+halves when migrating; see upstream's settings_reset instructions. UF2
+application builds preserve the vendor bootloader and settings partitions.
+These builds are compile-verified; physical hardware testing is separate.
+
+For incremental development, nix develop supplies the same dependencies:
+
+  cmake -S app -B build/local -G Ninja \
+    -DBOARD=slicemk_ergodox_202207_green_left \
+    -DBOARD_ROOT="$PWD/app" -DSHIELD=slicemk_ergodox_leftcentral \
+    -DZMK_CONFIG="$PWD/config"
+  cmake --build build/local --parallel
+
+lib.mkFirmware.<system> is a Nix function accepting name, board, optional
+shield, config, src, extraModules and cmakeFlags. Supported build hosts:
+x86_64-linux and aarch64-linux. Update pinned dependencies together with
+app/west.yml and the imported Zephyr manifest when upgrading ZMK.
